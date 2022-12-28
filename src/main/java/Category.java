@@ -7,7 +7,7 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.List;
 
-class Category {
+public class Category {
     private String name;
     private String category;
     private String pathCsv = "categories.csv";

@@ -15,3 +15,4 @@ target/
 !pom.xml
 .gradle
 /build/
+data.bin
