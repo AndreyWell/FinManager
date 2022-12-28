@@ -39,8 +39,6 @@ public class Main {
                         String input1 = reader.readLine();
                         String[] parts = input1.split(" ");
 
-                        System.out.println("1");
-
                         // Фиксация ошибки ввода: если не 3 части данных через пробел
                         if (parts.length != 3) {
                             System.out.println("Неправильно введены данные");

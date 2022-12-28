@@ -5,11 +5,16 @@ import java.util.List;
 
 public class Server {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
 
         try (ServerSocket serverSocket = new ServerSocket(8989)) {
             System.out.println("START!");
+
+            // Установка начальных значений категорий и суммы из файла data.bin
             MaxCategory maxCategory = new MaxCategory();
+            File json = new File("data.bin");
+            maxCategory.startWork(json);
+
             while (true) {
                 Socket fromClientSocket = serverSocket.accept();
                 try (
