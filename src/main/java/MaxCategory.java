@@ -5,6 +5,8 @@ import com.google.gson.reflect.TypeToken;
 
 import java.io.*;
 import java.lang.reflect.Type;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -25,6 +27,7 @@ public class MaxCategory {
     private List<MaxCategory> maxCategoryList;
     private MaxCategory getTitleDateSum;
     private List<Category> categoryList;
+    private List<Object> statOfBuy = new ArrayList<>();
     @Expose
     private int sum;
     private int indexCategoryList;
@@ -118,7 +121,7 @@ public class MaxCategory {
     }
 
     // Запись данных в List для Json
-    public List<MaxCategory> writeCategorySum(String pkg) throws Exception {
+    public List<Object> writeCategorySum(String pkg) throws Exception {
         GsonBuilder builder = new GsonBuilder();
         builder.excludeFieldsWithoutExposeAnnotation();
         Gson gson = builder.setPrettyPrinting().create();
@@ -201,7 +204,12 @@ public class MaxCategory {
         // Запись введенных данных в data.bin
         recordLog(getTitleDateSum);
 
-        return maxCategoryList;
+        // Расчет дополнительных полей статистики покупок:
+        // максимальная категория за год, месяц, день покупки
+        dateStat(titleDateSumList);
+        System.out.println("statOfBuy: " + statOfBuy);
+
+        return statOfBuy;
     }
 
     // Запись введенных данных в data.bin
@@ -277,11 +285,148 @@ public class MaxCategory {
         return collect;
     }
 
+    public void dateStat(List<MaxCategory> titleDateSumListAll) {
+        System.out.println("titleDateSumListAll.get(0).getDate(): " + titleDateSumListAll.get(0).getDate());
+
+        // List с данными за Год, Месяц, День - все введенные данные без группировки
+        List<MaxYearCategory> yearSumList = new ArrayList<>();
+        List<MaxMonthCategory> monthSumList = new ArrayList<>();
+        List<MaxDayCategory> daySumList = new ArrayList<>();
+
+        MaxCategory maxCategory;
+
+        MaxYearCategory yearCategory;
+        MaxMonthCategory monthCategory;
+        MaxDayCategory dayCategory;
+
+        // Формирование List - данные за Год, Месяц, День
+        for (MaxCategory maxCategoryFor : titleDateSumListAll) {
+            LocalDate datePattern = LocalDate.parse(maxCategoryFor.getDate(),
+                    DateTimeFormatter.ofPattern("yyyy.MM.dd"));
+            int year = datePattern.getYear();
+            int month = datePattern.getMonthValue();
+            int day = datePattern.getDayOfMonth();
+            String category = maxCategoryFor.getCategory();
+
+            int sum = maxCategoryFor.getSum();
+
+            yearCategory = new MaxYearCategory(year, category, sum);
+            monthCategory = new MaxMonthCategory(month, category, sum);
+            dayCategory = new MaxDayCategory(day, category, sum);
+
+            yearSumList.add(yearCategory);
+            monthSumList.add(monthCategory);
+            daySumList.add(dayCategory);
+        }
+
+        // !!!!!
+        // ГОД
+        // Группировка List в Map по Году и группировкой внутри года по Категориям
+        Map<Integer, Map<String, Integer>> collectYear = yearSumList.stream()
+                .collect(Collectors.groupingBy(
+                        MaxYearCategory::getYear,
+                        Collectors.groupingBy(MaxYearCategory::getCategory,
+                                Collectors.summingInt(MaxYearCategory::getSumYear))
+                ));
+        System.out.println("collectYear: " + collectYear);
+
+        System.out.println("yearSumList: " + yearSumList);
+
+        // Очистка List
+        yearSumList.clear();
+        for (Map.Entry<Integer, Map<String, Integer>> integerMapEntry : collectYear.entrySet()) {
+            Map<String, Integer> value = integerMapEntry.getValue();
+            for (Map.Entry<String, Integer> stringIntegerEntry : value.entrySet()) {
+                String categoryYear = stringIntegerEntry.getKey();
+                Integer sumYear = stringIntegerEntry.getValue();
+                yearCategory = new MaxYearCategory(categoryYear, sumYear);
+                yearSumList.add(yearCategory);
+            }
+        }
+        System.out.println("yearSumList: " + yearSumList);
+        // Результат - год
+        List<MaxYearCategory> MaxYearCategoryResult = yearSumList.stream()
+                .sorted(Comparator.comparing(MaxYearCategory::getSumYear).reversed())
+                .limit(1)
+                .collect(Collectors.toList());
+        System.out.println("MaxYearCategoryResult: " + MaxYearCategoryResult);
+
+        // !!!!!
+        // МЕСЯЦ
+        // Группировка List в Map по Месяцу и группировкой внутри месяца по Категориям
+        Map<Integer, Map<String, Integer>> collectMonth = monthSumList.stream()
+                .collect(Collectors.groupingBy(
+                        MaxMonthCategory::getMonth,
+                        Collectors.groupingBy(MaxMonthCategory::getCategory,
+                                Collectors.summingInt(MaxMonthCategory::getSumMonth))
+                ));
+        System.out.println("collectMonth: " + collectMonth);
+
+        System.out.println("monthSumList: " + monthSumList);
+
+        // Очистка List
+        monthSumList.clear();
+        for (Map.Entry<Integer, Map<String, Integer>> integerMapEntry : collectMonth.entrySet()) {
+            Map<String, Integer> value = integerMapEntry.getValue();
+            for (Map.Entry<String, Integer> stringIntegerEntry : value.entrySet()) {
+                String categoryMonth = stringIntegerEntry.getKey();
+                Integer sumMonth = stringIntegerEntry.getValue();
+                monthCategory = new MaxMonthCategory(categoryMonth, sumMonth);
+                monthSumList.add(monthCategory);
+            }
+        }
+        System.out.println("monthSumList: " + monthSumList);
+        // Результат - месяц
+        List<MaxMonthCategory> MaxMonthCategoryResult = monthSumList.stream()
+                .sorted(Comparator.comparing(MaxMonthCategory::getSumMonth).reversed())
+                .limit(1)
+                .collect(Collectors.toList());
+        System.out.println("MaxMonthCategoryResult: " + MaxMonthCategoryResult);
+
+        // !!!!!
+        // ДЕНЬ
+        // Группировка List в Map по Дню и группировкой внутри дня по Категориям
+        Map<Integer, Map<String, Integer>> collectDay = daySumList.stream()
+                .collect(Collectors.groupingBy(
+                        MaxDayCategory::getDay,
+                        Collectors.groupingBy(MaxDayCategory::getCategory,
+                                Collectors.summingInt(MaxDayCategory::getSumDay))
+                ));
+        System.out.println("collectDay: " + collectDay);
+
+        System.out.println("daySumList: " + daySumList);
+
+        // Очистка List
+        daySumList.clear();
+        for (Map.Entry<Integer, Map<String, Integer>> integerMapEntry : collectDay.entrySet()) {
+            Map<String, Integer> value = integerMapEntry.getValue();
+            for (Map.Entry<String, Integer> stringIntegerEntry : value.entrySet()) {
+                String categoryDay = stringIntegerEntry.getKey();
+                Integer sumDay = stringIntegerEntry.getValue();
+                dayCategory = new MaxDayCategory(categoryDay, sumDay);
+                daySumList.add(dayCategory);
+            }
+        }
+        System.out.println("daySumList: " + daySumList);
+        // Результат - день
+        List<MaxDayCategory> MaxDayCategoryResult = daySumList.stream()
+                .sorted(Comparator.comparing(MaxDayCategory::getSumDay).reversed())
+                .limit(1)
+                .collect(Collectors.toList());
+        System.out.println("MaxDayCategoryResult: " + MaxDayCategoryResult);
+
+        // Добавление в List итогового результата
+        statOfBuy.add(maxCategoryList.get(0));
+        statOfBuy.add(MaxYearCategoryResult.get(0));
+        statOfBuy.add(MaxMonthCategoryResult.get(0));
+        statOfBuy.add(MaxDayCategoryResult.get(0));
+    }
+
     @Override
     public String toString() {
-        return "MaxCategory{" +
-                "category='" + category + '\'' +
-                "sum=" + sum +
+        return "maxCategory: {" +
+                "category: '" + category + '\'' +
+                ", sum: " + sum +
                 '}';
     }
 }

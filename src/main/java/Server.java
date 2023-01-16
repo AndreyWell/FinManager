@@ -35,7 +35,7 @@ public class Server {
                             out.println(categories);
                             System.out.println("Отправлен ответ");
                         } else {
-                            List<MaxCategory> maxCategories = maxCategory.writeCategorySum(inputWord);
+                            List<Object> maxCategories = maxCategory.writeCategorySum(inputWord);
                             System.out.println("Внесено!");
                             out.println(maxCategories);
                         }

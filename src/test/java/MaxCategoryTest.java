@@ -16,6 +16,7 @@ import java.util.List;
 class MaxCategoryTest {
     private List<MaxCategory> category;
     private List<MaxCategory> maxCategoryList;
+    private List<Object> statOfBuy;
     @Spy
     private MaxCategory maxCategory;
 
