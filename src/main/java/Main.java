@@ -33,7 +33,7 @@ public class Main {
                 }
 
                 if (input.equals("1")) {
-                    System.out.println("Укажите через пробел:" +
+                    System.out.println("Укажите через пробел: " +
                             "покупку дату (ГГГГ.ММ.ДД) сумму или 'end', чтобы выйти");
                     try {
                         String input1 = reader.readLine();

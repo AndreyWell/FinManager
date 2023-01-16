@@ -1,31 +1,35 @@
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.Mock;
 
-import java.util.Arrays;
-
-import static org.junit.jupiter.api.Assertions.*;
+import java.util.List;
 
 class CategoryTest {
-
-    @Mock
     private Category category;
     private String categories;
     private String pathCsv = "categories.csv";
+    List<Category> listCategory;
 
     @BeforeEach
-    void setUp() {
-        categories = "[Булка - еда, колбаса - еда, сухарики - еда, курица - еда, " +
-                "тапки - одежда, шапка - одежда, мыло - быт, акции - финансы]";
+    void setUp() throws Exception {
+        category = new Category();
+        listCategory = List.of(
+                new Category("Булка", "еда"),
+                new Category("колбаса", "еда"),
+                new Category("сухарики", "еда"),
+                new Category("курица", "еда"),
+                new Category("тапки", "одежда"),
+                new Category("шапка", "одежда"),
+                new Category("мыло", "быт"),
+                new Category("акции", "финансы")
+        );
     }
 
     @Test
     void singleLine() throws Exception {
+        String expected = listCategory.toString();
+        String actual = Category.singleLine(pathCsv).toString();
 
-        Assertions.assertEquals(categories, Category.singleLine(pathCsv).toString());
+        Assertions.assertEquals(expected, actual);
     }
 }

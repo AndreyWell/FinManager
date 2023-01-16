@@ -4,20 +4,18 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.Spy;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
 class MaxCategoryTest {
-    
-    private static final String csvText = "шапка\tодежда\nакции\tфинансы";
-    private static final String csv = "categories.csv";
     private List<MaxCategory> category;
     private List<MaxCategory> maxCategoryList;
-
     @Spy
     private MaxCategory maxCategory;
 
@@ -36,7 +34,13 @@ class MaxCategoryTest {
     @ParameterizedTest
     @ValueSource(strings = { "{\"title\":\"шапка\",\"date\":\"2020.10.10\",\"sum\":100}" })
     void writeCategorySum(String input) throws Exception {
-        Assertions.assertEquals(category.toString(), maxCategory.writeCategorySum(input).toString());
+
+        doNothing().when(maxCategory).recordLog(ArgumentMatchers.any());
+
+        String actual = maxCategory.writeCategorySum(input).toString();
+        String expected = category.toString();
+
+        Assertions.assertEquals(expected, actual);
     }
 
     @Test

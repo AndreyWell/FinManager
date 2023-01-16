@@ -8,6 +8,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.google.gson.ToNumberPolicy.LAZILY_PARSED_NUMBER;
@@ -23,8 +24,10 @@ public class MaxCategory {
     private List<MaxCategory> titleDateSumList;
     private List<MaxCategory> maxCategoryList;
     private MaxCategory getTitleDateSum;
+    private List<Category> categoryList;
     @Expose
     private int sum;
+    private int indexCategoryList;
     private String pathCsv = "categories.csv";
 
     public MaxCategory(String title, String date, int sum) {
@@ -114,7 +117,7 @@ public class MaxCategory {
         this.getTitleDateSum = getTitleDateSum;
     }
 
-    // Запись данных в Json
+    // Запись данных в List для Json
     public List<MaxCategory> writeCategorySum(String pkg) throws Exception {
         GsonBuilder builder = new GsonBuilder();
         builder.excludeFieldsWithoutExposeAnnotation();
@@ -122,21 +125,26 @@ public class MaxCategory {
         // Полученный запрос из JSON
         getTitleDateSum = gson.fromJson(pkg, MaxCategory.class);
         // Получение списка категорий из CSV в List
-        List<Category> categoryList = Category.singleLine(pathCsv);
+        if (categoryList == null || categoryList.isEmpty()) {
+            categoryList = Category.singleLine(pathCsv);
+        }
         MaxCategory categoryBuild;
         // Перебор наличия категорий в CSV
         int count = 0;
         for (int i = 0; i < categoryList.size(); i++) {
             // Сопоставление i-категории из CSV с JSON
             if (categoryList.get(i).getName().equalsIgnoreCase(getTitleDateSum.getTitle())) {
+                System.out.println(categoryList.get(i).getName() + " " + getTitleDateSum.getTitle());
                 String setCategory = categoryList.get(i).getCategory();
                 int sumCategory = getTitleDateSum.getSum();
                 // Создание объекта MaxCategory с переданной категорией и суммой
                 categoryBuild = new MaxCategory(setCategory, sumCategory);
                 // Добавление созданного объекта MaxCategory в List
                 // Добавление в List впервые
+                i = categoryList.size();
                 if (categorySumList.isEmpty()) {
                     categorySumList.add(categoryBuild);
+                    indexCategoryList = 0;
                     count++;
                 } else {
                     // Добавление в List, если там уже есть данные с суммированием категории из CSV
@@ -146,12 +154,15 @@ public class MaxCategory {
                             int sumCategoryList = categorySumList.get(j).getSum();
                             int sumCategoryBuild = categoryBuild.getSum();
                             categorySumList.get(j).setSum(sumCategoryList + sumCategoryBuild);
+                            indexCategoryList = j;
+                            j = categorySumList.size();
                             count++;
                         }
                     }
                     // Если это новая категория из CSV для итогового List
                     if (count == 0) {
                         categorySumList.add(categoryBuild);
+                        indexCategoryList = categorySumList.size() - 1;
                         count++;
                     }
                 }
@@ -164,6 +175,7 @@ public class MaxCategory {
             if (categorySumList.isEmpty()) {
                 categoryBuild = new MaxCategory("другое", getTitleDateSum.getSum());
                 categorySumList.add(categoryBuild);
+                indexCategoryList = 0;
             } else {
                 // Поиск категории "другое" в итоговом List
                 for (int m = 0; m < categorySumList.size(); m++) {
@@ -171,12 +183,15 @@ public class MaxCategory {
                         int sumMore = categorySumList.get(m).getSum();
                         int sumTitleDate = getTitleDateSum.getSum();
                         categorySumList.get(m).setSum(sumMore + sumTitleDate);
+                        indexCategoryList = m;
+                        m = categorySumList.size();
                         count++;
                     }
                 }
                 if (count == 0) {
                     categoryBuild = new MaxCategory("другое", getTitleDateSum.getSum());
                     categorySumList.add(categoryBuild);
+                    indexCategoryList = categorySumList.size() - 1;
                 }
             }
         }
@@ -184,10 +199,19 @@ public class MaxCategory {
         maxCategoryList = selectMaxCategory(categorySumList);
 
         // Запись введенных данных в data.bin
+        recordLog(getTitleDateSum);
+
+        return maxCategoryList;
+    }
+
+    // Запись введенных данных в data.bin
+    public void recordLog(MaxCategory getTitleDateSum) throws Exception {
+        GsonBuilder builder = new GsonBuilder();
+        builder.excludeFieldsWithoutExposeAnnotation();
+        Gson gson = builder.setPrettyPrinting().create();
         try (FileWriter writer = new FileWriter("data.bin", false)) {
-            int size = categorySumList.size();
             MaxCategory titleDateSumForList = new MaxCategory(
-                    categorySumList.get(size - 1).getCategory(),
+                    categorySumList.get(indexCategoryList).getCategory(),
                     getTitleDateSum.getTitle(),
                     getTitleDateSum.getDate(),
                     getTitleDateSum.getSum());
@@ -195,12 +219,11 @@ public class MaxCategory {
             String s = gson.toJson(titleDateSumList);
             writer.write(s);
         }
-
-        return maxCategoryList;
     }
 
     // Чтение файла data.bin для установки начальной информации о записанной ранее категории и сумме
     public void startWork(File data) throws Exception {
+        MaxCategory forStartBuildCategorySum;
         if (data.canRead()) {
             GsonBuilder builder = new GsonBuilder();
             builder.excludeFieldsWithoutExposeAnnotation();
@@ -217,12 +240,20 @@ public class MaxCategory {
                 // List c MaxCategory - все поля
                 List<MaxCategory> readJson = gson.fromJson(reader, typeMyType);
 
-                // Запись List для определения максимальной категории
-                for (int i = 0; i < readJson.size(); i++) {
-                    String setCategory = readJson.get(i).getCategory();
-                    int setSum = readJson.get(i).getSum();
-                    MaxCategory maxCategoryBuild = new MaxCategory(setCategory, setSum);
-                    this.categorySumList.add(maxCategoryBuild);
+                // Группировка List в Map с суммированием (значения) по Категории (ключ)
+                Map<String, Integer> collect = readJson.stream()
+                        .collect(Collectors.groupingBy(
+                                MaxCategory::getCategory,
+                                Collectors.summingInt(MaxCategory::getSum)
+                        ));
+
+                // Формирование из Map - List<MaxCategory> - запись введенных ранее данных
+                // из JSON
+                for (Map.Entry<String, Integer> stringIntegerEntry : collect.entrySet()) {
+                    String categoryForStart = stringIntegerEntry.getKey();
+                    int sumForStart = stringIntegerEntry.getValue();
+                    forStartBuildCategorySum = new MaxCategory(categoryForStart, sumForStart);
+                    categorySumList.add(forStartBuildCategorySum);
                 }
 
                 // Установка в общий List начальных значений из data.bin
