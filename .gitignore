@@ -13,6 +13,7 @@ target/
 *.csv
 !log.csv
 !pom.xml
+!categories.csv
 .gradle
 /build/
 data.bin
