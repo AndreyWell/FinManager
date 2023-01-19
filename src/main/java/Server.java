@@ -5,8 +5,7 @@ import java.util.List;
 
 public class Server {
 
-    public static void main(String[] args) throws Exception {
-
+    public void start() throws Exception {
         try (ServerSocket serverSocket = new ServerSocket(8989)) {
             System.out.println("START!");
 
@@ -49,5 +48,10 @@ public class Server {
             e.printStackTrace();
         }
     }
+
+    public static void main(String[] args) throws Exception {
+    }
 }
+
+
 
