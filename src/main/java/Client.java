@@ -59,7 +59,9 @@ public class Client {
                         builder.excludeFieldsWithoutExposeAnnotation();
                         Gson gson = builder.create();
                         MaxCategory sendChoice = new MaxCategory(title, date, sum);
+
                         String pkg = gson.toJson(sendChoice);
+
                         out.println(pkg);
                         // ОТВЕТ СЕРВЕРА - КАТЕГОРИЯ С МАКСИМАЛЬНОЙ СУММОЙ
                         String answer = in.readLine();

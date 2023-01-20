@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 import static com.google.gson.ToNumberPolicy.LAZILY_PARSED_NUMBER;
 
-public class MaxCategory {
+public class MaxCategory implements Serializable {
     @Expose
     private String category;
     @Expose
@@ -118,10 +118,10 @@ public class MaxCategory {
     }
 
     // Запись данных в List для Json
-    public List<MaxCategory> writeCategorySum(String pkg) throws Exception {
+    public String writeCategorySum(String pkg) throws Exception {
         GsonBuilder builder = new GsonBuilder();
         builder.excludeFieldsWithoutExposeAnnotation();
-        Gson gson = builder.setPrettyPrinting().create();
+        Gson gson = builder.create();
         // Полученный запрос из JSON
         getTitleDateSum = gson.fromJson(pkg, MaxCategory.class);
         // Получение списка категорий из CSV в List
@@ -134,7 +134,6 @@ public class MaxCategory {
         for (int i = 0; i < categoryList.size(); i++) {
             // Сопоставление i-категории из CSV с JSON
             if (categoryList.get(i).getName().equalsIgnoreCase(getTitleDateSum.getTitle())) {
-                System.out.println(categoryList.get(i).getName() + " " + getTitleDateSum.getTitle());
                 String setCategory = categoryList.get(i).getCategory();
                 int sumCategory = getTitleDateSum.getSum();
                 // Создание объекта MaxCategory с переданной категорией и суммой
@@ -201,7 +200,9 @@ public class MaxCategory {
         // Запись введенных данных в data.bin
         recordLog(getTitleDateSum);
 
-        return maxCategoryList;
+        String answerJson = gson.toJson(maxCategoryList);
+
+        return answerJson;
     }
 
     // Запись введенных данных в data.bin

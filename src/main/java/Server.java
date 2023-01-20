@@ -34,7 +34,7 @@ public class Server {
                             out.println(categories);
                             System.out.println("Отправлен ответ");
                         } else {
-                            List<MaxCategory> maxCategories = maxCategory.writeCategorySum(inputWord);
+                            String maxCategories = maxCategory.writeCategorySum(inputWord);
                             System.out.println("Внесено!");
                             out.println(maxCategories);
                         }
@@ -47,9 +47,6 @@ public class Server {
             System.out.println("Не могу стартовать сервер");
             e.printStackTrace();
         }
-    }
-
-    public static void main(String[] args) throws Exception {
     }
 }
 

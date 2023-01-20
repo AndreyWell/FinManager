@@ -1,3 +1,5 @@
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,14 +20,23 @@ class MaxCategoryTest {
     private List<MaxCategory> maxCategoryList;
     @Spy
     private MaxCategory maxCategory;
+    String expected;
 
     @BeforeEach
     void setUp() {
         category = new ArrayList<>();
         maxCategoryList = new ArrayList<>();
+
         MaxCategory maxCategory = new MaxCategory("одежда", 100);
         MaxCategory maxCategory1 = new MaxCategory("финансы", 10);
+
         category.add(maxCategory);
+        GsonBuilder builder = new GsonBuilder();
+        builder.excludeFieldsWithoutExposeAnnotation();
+        Gson gson = builder.create();
+        expected = gson.toJson(category);
+
+        System.out.println("category: " + category);
         maxCategoryList.add(maxCategory);
         maxCategoryList.add(maxCategory1);
 
@@ -38,7 +49,6 @@ class MaxCategoryTest {
         doNothing().when(maxCategory).recordLog(ArgumentMatchers.any());
 
         String actual = maxCategory.writeCategorySum(input).toString();
-        String expected = category.toString();
 
         Assertions.assertEquals(expected, actual);
     }
