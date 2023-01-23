@@ -10,9 +10,14 @@ public class Server {
             System.out.println("START!");
 
             // Установка начальных значений категорий и суммы из файла data.bin
-            MaxCategory maxCategory = new MaxCategory();
+            CreateMaxCategory createMaxCategory = new CreateMaxCategory();
+
             File json = new File("data.bin");
-            maxCategory.startWork(json);
+//            startWork.startWork(json);
+            createMaxCategory.startWork(json);
+//            System.out.println("SERVER = maxCategory.getTitleDateSumList(): " + startWork.getTitleDateSumList());
+//            List<MaxCategory> categorySumList = startWork.getCategorySumList();
+//            System.out.println("SERVER = categorySumList: " + categorySumList);
 
             while (true) {
                 Socket fromClientSocket = serverSocket.accept();
@@ -34,7 +39,7 @@ public class Server {
                             out.println(categories);
                             System.out.println("Отправлен ответ");
                         } else {
-                            String maxCategories = maxCategory.writeCategorySum(inputWord);
+                            String maxCategories = createMaxCategory.writeCategorySum(inputWord);
                             System.out.println("Внесено!");
                             out.println(maxCategories);
                         }

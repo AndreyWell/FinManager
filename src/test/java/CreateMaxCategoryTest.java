@@ -15,11 +15,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
-class MaxCategoryTest {
+class CreateMaxCategoryTest {
     private List<MaxCategory> category;
     private List<MaxCategory> maxCategoryList;
     @Spy
-    private MaxCategory maxCategory;
+    private CreateMaxCategory CreateMaxCategory;
     String expected;
 
     @BeforeEach
@@ -46,15 +46,15 @@ class MaxCategoryTest {
     @ValueSource(strings = { "{\"title\":\"шапка\",\"date\":\"2020.10.10\",\"sum\":100}" })
     void writeCategorySum(String input) throws Exception {
 
-        doNothing().when(maxCategory).recordLog(ArgumentMatchers.any());
+        doNothing().when(CreateMaxCategory).recordLog(ArgumentMatchers.any());
 
-        String actual = maxCategory.writeCategorySum(input).toString();
+        String actual = CreateMaxCategory.writeCategorySum(input).toString();
 
         Assertions.assertEquals(expected, actual);
     }
 
     @Test
     void selectMaxCategory() {
-        Assertions.assertEquals(category, maxCategory.selectMaxCategory(maxCategoryList));
+        Assertions.assertEquals(category, CreateMaxCategory.selectMaxCategory(maxCategoryList));
     }
 }
