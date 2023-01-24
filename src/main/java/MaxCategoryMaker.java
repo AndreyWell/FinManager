@@ -1,6 +1,5 @@
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.annotations.Expose;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.BufferedReader;
@@ -16,7 +15,7 @@ import java.util.stream.Collectors;
 
 import static com.google.gson.ToNumberPolicy.LAZILY_PARSED_NUMBER;
 
-public class CreateMaxCategory {
+public class MaxCategoryMaker {
     private List<MaxCategory> categorySumList;
     private List<MaxCategory> titleDateSumList;
     private List<MaxCategory> maxCategoryList;
@@ -25,7 +24,7 @@ public class CreateMaxCategory {
     private int indexCategoryList;
     private String pathCsv = "categories.csv";
 
-    public CreateMaxCategory() {
+    public MaxCategoryMaker() {
         this.categorySumList = new ArrayList<>();
         this.titleDateSumList = new ArrayList<>();
     }
